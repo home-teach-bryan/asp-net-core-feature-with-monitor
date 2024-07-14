@@ -26,6 +26,7 @@ public class UserController : ControllerBase
         var isValid = _userService.AddUser(request.Name, request.Password, request.Roles);
         if (!isValid)
         {
+            
             return BadRequest("加入使用者失敗");
         }
         return Ok(true);

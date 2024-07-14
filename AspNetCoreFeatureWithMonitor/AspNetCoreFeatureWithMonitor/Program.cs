@@ -47,15 +47,17 @@ public class Program
         // health check
         builder.Services.AddCustomHealthCheck();
         // http logging
-        builder.Services.AddCustomHttpLogging();
-        builder.Services.AddHttpLoggingInterceptor<HttpLoggingInterceptor>();
+        // builder.Services.AddCustomHttpLogging();
+        // builder.Services.AddHttpLoggingInterceptor<HttpLoggingInterceptor>();
         
         // Db Context
         builder.Services.AddDbContext<EFcoreSampleContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("EFCoreSampleConnectionString"));
         });
-        
+
+
+        builder.Services.AddCustomOpenTelemetry();
         
         var app = builder.Build();
         app.UseMiddleware<ExceptionMiddleware>();
@@ -84,8 +86,10 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+
+        app.MapPrometheusScrapingEndpoint();
         app.UseHttpsRedirection();
-        app.UseHttpLogging();
+        // app.UseHttpLogging();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseRateLimiter();

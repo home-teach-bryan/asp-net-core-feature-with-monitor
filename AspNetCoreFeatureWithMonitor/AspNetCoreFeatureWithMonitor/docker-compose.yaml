@@ -1,0 +1,29 @@
+﻿name: grafana-stack
+
+version: "3.8"
+services:
+  grafana:
+    hostname: grafana
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: always
+    volumes:
+      - grafana:/var/lib/grafana
+    ports:
+      - '3000:3000'
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    environment:
+      - ENABLE_FEATURE=otlp-write-receiver
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus:/etc/prometheus
+
+volumes:
+  grafana:
+  prometheus: 
+  
