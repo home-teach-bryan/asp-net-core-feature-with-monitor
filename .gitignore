@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreFeature/.idea/workspace.xml
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreFeatureWithMonitor/.idea/.gitignore
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreFeatureWithMonitor/.idea/encodings.xml
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreFeatureWithMonitor/.idea/indexLayout.xml
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreFeatureWithMonitor/.idea/vcs.xml
+/AspNetCoreFeatureWithMonitor/.idea/.idea.AspNetCoreSample/.idea/workspace.xml
