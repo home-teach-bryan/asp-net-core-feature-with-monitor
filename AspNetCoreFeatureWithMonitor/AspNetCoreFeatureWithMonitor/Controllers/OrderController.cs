@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
+using AspNetCoreFeatureWithMonitor.Models.Enum;
 using AspNetCoreFeatureWithMonitor.Models.Request;
+using AspNetCoreFeatureWithMonitor.Models.Response;
 using AspNetCoreFeatureWithMonitor.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,12 +35,12 @@ public class OrderController : ControllerBase
         var userId = base.HttpContext.User.Claims.FirstOrDefault(item => item.Type == ClaimTypes.NameIdentifier);
         if (userId == null)
         {
-            return BadRequest("找不到使用者ID");
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.UserNotFound));
         }
         var isSuccess = _orderService.AddOrder(addOrderRequest, Guid.Parse(userId.Value));
         if (!isSuccess)
         {
-            return BadRequest("成立訂單失敗");
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.AddOrderFail));
         }
         return Ok(isSuccess);
 
@@ -51,7 +53,7 @@ public class OrderController : ControllerBase
         var userId = base.HttpContext.User.Claims.FirstOrDefault(item => item.Type == ClaimTypes.NameIdentifier);
         if (userId == null)
         {
-            return BadRequest("找不到使用者ID");
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.UserNotFound));
         }
         var orderDetails = _orderService.GetOrderDetails(Guid.Parse(userId.Value));
         return Ok(orderDetails);

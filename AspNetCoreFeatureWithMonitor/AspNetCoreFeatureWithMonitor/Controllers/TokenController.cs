@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using AspNetCoreFeatureWithMonitor.Jwt;
+using AspNetCoreFeatureWithMonitor.Models.Enum;
 using AspNetCoreFeatureWithMonitor.Models.Request;
+using AspNetCoreFeatureWithMonitor.Models.Response;
 using AspNetCoreFeatureWithMonitor.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,10 +38,13 @@ public class TokenController : ControllerBase
         var (isValid, user) = _userService.IsValid(request.Name, request.Password);
         if (!isValid)
         {
-            return BadRequest("帳號或密碼錯誤");
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.UserNotFound));
         }
         var token = _jwtTokenGenerator.GenerateJwtToken(user.Id, user.Name, user.Roles);
-        return Ok(token);
+        return Ok(new ApiResponse<object>(ApiResponseStatus.Success)
+        {
+            Data = token
+        });
     }
 
     /// <summary>
@@ -52,6 +57,17 @@ public class TokenController : ControllerBase
     public IActionResult GetRoles()
     {
         var roleClaim = base.HttpContext.User.Claims.Where(item => item.Type == ClaimTypes.Role);
-        return Ok(roleClaim.Select(item => item.Value));
+        if (!roleClaim.Any())
+        {
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.Fail)
+            {
+                Data = null
+            });
+        }
+        var roles = roleClaim.Select(item => item.Value);
+        return Ok(new ApiResponse<IEnumerable<string>>(ApiResponseStatus.Success)
+        {
+            Data = roles
+        });
     }
 }

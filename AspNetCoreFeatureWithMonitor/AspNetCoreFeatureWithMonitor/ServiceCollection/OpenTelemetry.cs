@@ -16,7 +16,6 @@ public static class OpenTelemetry
             opt.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("AspNetCoreFeatureWithMonitor"))
                 .AddMeter("AspNetCoreFeatureWithMonitor")
                 .AddAspNetCoreInstrumentation()
-                .AddConsoleExporter()
                 .AddPrometheusExporter();
         });
         return service;

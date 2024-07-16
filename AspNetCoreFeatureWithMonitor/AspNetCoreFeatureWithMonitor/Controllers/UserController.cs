@@ -1,4 +1,6 @@
-﻿using AspNetCoreFeatureWithMonitor.Models.Request;
+﻿using AspNetCoreFeatureWithMonitor.Models.Enum;
+using AspNetCoreFeatureWithMonitor.Models.Request;
+using AspNetCoreFeatureWithMonitor.Models.Response;
 using AspNetCoreFeatureWithMonitor.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,9 +28,8 @@ public class UserController : ControllerBase
         var isValid = _userService.AddUser(request.Name, request.Password, request.Roles);
         if (!isValid)
         {
-            
-            return BadRequest("加入使用者失敗");
+            return BadRequest(new ApiResponse<object>(ApiResponseStatus.AddUserFail));
         }
-        return Ok(true);
+        return Ok(new ApiResponse<object>(ApiResponseStatus.Success));
     }
 }

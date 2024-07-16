@@ -1,6 +1,5 @@
 using AspNetCoreFeatureWithMonitor.ActionFilter;
 using AspNetCoreFeatureWithMonitor.DbContext;
-using AspNetCoreFeatureWithMonitor.Interceptor;
 using AspNetCoreFeatureWithMonitor.Jwt;
 using AspNetCoreFeatureWithMonitor.Middleware;
 using AspNetCoreFeatureWithMonitor.Models;
@@ -10,6 +9,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Serilog;
+using Serilog.Events;
 
 namespace AspNetCoreFeatureWithMonitor;
 
@@ -17,84 +18,78 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        var excludePath = new List<string>
+        {
+            "metrics", "health", "swagger"
+        };
         var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
-
-        builder.Services.AddControllers(option =>
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Filter.With(new CustomLogEventFilter(excludePath))
+            .CreateLogger();
+        try
         {
-            option.Filters.Add<ValidationModelActionFilter>();
-            option.Filters.Add<ApiResponseActionFilter>();
-        });
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.Configure<ApiBehaviorOptions>(item => item.SuppressModelStateInvalidFilter = true);
-        // swagger document spec 
-        builder.Services.AddCustomSwaggerGen();
-        builder.Services.AddScoped<IProductService, ProductService>();
-        builder.Services.AddScoped<IUserService, UserService>();
-        builder.Services.AddScoped<IOrderService, OrderService>();
-        builder.Services.AddScoped<JwtTokenGenerator>();
-        
-        // jwt authentication setting
-        builder.Services.AddCustomJwtAuthentication(builder.Configuration);
+            // Add services to the container.
+            builder.Services.AddControllers(option => { option.Filters.Add<ValidationModelActionFilter>(); });
+            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.Configure<ApiBehaviorOptions>(item => item.SuppressModelStateInvalidFilter = true);
+            // swagger document spec 
+            builder.Services.AddCustomSwaggerGen();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<JwtTokenGenerator>();
 
-        builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+            // jwt authentication setting
+            builder.Services.AddCustomJwtAuthentication(builder.Configuration);
 
-        // rate limit
-        builder.Services.AddCustomRateLimiter();
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
-        // health check
-        builder.Services.AddCustomHealthCheck();
-        // http logging
-        // builder.Services.AddCustomHttpLogging();
-        // builder.Services.AddHttpLoggingInterceptor<HttpLoggingInterceptor>();
-        
-        // Db Context
-        builder.Services.AddDbContext<EFcoreSampleContext>(options =>
-        {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("EFCoreSampleConnectionString"));
-        });
+            // rate limit
+            builder.Services.AddCustomRateLimiter();
 
+            // health check
+            builder.Services.AddCustomHealthCheck();
 
-        builder.Services.AddCustomOpenTelemetry();
-        
-        var app = builder.Build();
-        app.UseMiddleware<ExceptionMiddleware>();
-        app.MapHealthChecks("/health", new HealthCheckOptions
-        {
-            ResponseWriter = (httpContext, healthReport) =>
+            // logging
+            builder.Services.AddSerilog();
+
+            // Db Context
+            builder.Services.AddDbContext<EFcoreSampleContext>(options =>
             {
-                var result = new
-                {
-                    health = Enum.Parse<HealthStatus>(healthReport.Status.ToString()).ToString(),
-                    services = healthReport.Entries.Select(item => new
-                    {
-                        name = item.Key,
-                        health = Enum.Parse<HealthStatus>(item.Value.Status.ToString()).ToString()
-                    })
-                };
-                httpContext.Response.ContentType = "application/json";
-                var json = System.Text.Json.JsonSerializer.Serialize(result);
-                return httpContext.Response.WriteAsync(json);
+                options.UseSqlServer(builder.Configuration.GetConnectionString("EFCoreSampleConnectionString"));
+            });
+            
+            builder.Services.AddCustomOpenTelemetry();
+
+            var app = builder.Build();
+            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseCustomHealthCheck();
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
-        });
+            app.MapPrometheusScrapingEndpoint();
+            app.UseSerilogRequestLogging();
+            app.UseMiddleware<HttpLoggingMiddleware>();
+            app.UseHttpsRedirection();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseRateLimiter();
 
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.MapControllers();
+            app.Run();
         }
-
-        app.MapPrometheusScrapingEndpoint();
-        app.UseHttpsRedirection();
-        // app.UseHttpLogging();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseRateLimiter();
-
-        app.MapControllers();
-        app.Run();
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application start-up failed");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 }

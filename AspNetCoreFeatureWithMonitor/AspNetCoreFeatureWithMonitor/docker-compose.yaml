@@ -22,8 +22,40 @@ services:
       - '9090:9090'
     volumes:
       - prometheus:/etc/prometheus
-
+  local-sql-server:
+      hostname: local-host-sql
+      container_name: local-sql-server
+      restart: always
+      image: mcr.microsoft.com/mssql/server:2022-latest
+      ports:
+        - '1433:1433'
+      environment:
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=Aa123456
+  loki:
+    image: grafana/loki:3.0.0
+    hostname: loki
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki:/mnt/config
+    command:
+      - "-config.file=/mnt/config/loki-config.yaml"
+  promtail:
+    image: grafana/promtail:3.0.0
+    hostname: promtail
+    container_name: promtail
+    volumes:
+      - promtail:/mnt/config
+    command:
+      - "-config.file=/mnt/config/promtail-config.yaml"
+    depends_on:
+      - loki
 volumes:
   grafana:
-  prometheus: 
+  prometheus:
+  loki:
+  promtail:
+    
   
