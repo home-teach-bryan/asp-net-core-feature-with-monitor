@@ -1,8 +1,11 @@
 ﻿## 安裝Grafana on Docker
 [Grafana Docker](https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/)
 [Prometheus Docker](https://prometheus.io/docs/prometheus/latest/installation/#using-docker)
+[Loki](https://grafana.com/docs/loki/latest/setup/install/docker/)
 
-### 使用docker-compose建立Prometheus和Grafana
+
+### 使用docker-compose建立 Prometheus、Grafana、Loki
+
 ```
 name: grafana-stack
 
@@ -28,10 +31,30 @@ services:
       - '9090:9090'
     volumes:
       - prometheus:/etc/prometheus
-
+  local-sql-server:
+      hostname: local-host-sql
+      container_name: local-sql-server
+      restart: always
+      image: mcr.microsoft.com/mssql/server:2022-latest
+      ports:
+        - '1433:1433'
+      environment:
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=Aa123456
+  loki:
+    image: grafana/loki:3.0.0
+    hostname: loki
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki:/mnt/config
+    command:
+      - "-config.file=/mnt/config/loki-config.yaml"
 volumes:
   grafana:
-  prometheus: 
+  prometheus:
+  loki:
 ```
 
 ## 專案安裝Exporter到Prometheus
@@ -92,13 +115,12 @@ rule_files:
 scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: "prometheus"
-  
+
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
 
-    scrape_interval: 1s # poll very quickly for a more responsive demo
     static_configs:
-      - targets: ["host.docker.internal:5288"]
+      - targets: ["localhost:9090"]
 ```
 
 在 `scrape_configs` 設定中加入Job的區段
@@ -114,3 +136,42 @@ scrape_configs:
 ```
 
 - 加入設定後再重啟container 去Status => Target確認新加入的Job有成功收集資料
+
+
+
+## loki容器設定
+
+1. 將專案內的loki-config.yml檔案放置docker volumn掛載出來的位置
+ex: {host}\docker-desktop-data\data\docker\volumes\grafana-stack_loki\_data)
+
+2. 放置完後需要啟動loki container
+
+## 專案中設定Log寫入至loki(使用Serilog)
+1. [安裝Serilog to loki](https://github.com/serilog-contrib/serilog-sinks-grafana-loki)
+2. 加入Serilog WriteTo的設定
+
+```
+...
+{
+  "Name": "GrafanaLoki",
+  "Args": {
+    "uri": "http://localhost:3100",
+    "labels": [
+      {
+        "key": "app",
+        "value": "AspNetCoreFeatureWithMonitor"
+      }
+    ],
+    "propertiesAsLabels": [
+      "app"
+    ]
+  }
+}
+...
+```
+
+
+
+
+
+

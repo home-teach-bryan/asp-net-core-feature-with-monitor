@@ -57,5 +57,3 @@ volumes:
   prometheus:
   loki:
   promtail:
-    
-  
