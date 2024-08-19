@@ -90,6 +90,8 @@ app.MapPrometheusScrapingEndpoint();
 
 - 打開prometheus.yml (先前的docker compose有掛載整個資料夾，在資料夾中找到這個檔案)
 
+ex: \docker-desktop-data\data\docker\volumes\grafana-stack_prometheus\_data
+
 預設的內容
 ```
 # my global config
@@ -136,7 +138,6 @@ scrape_configs:
 ```
 
 - 加入設定後再重啟container 去Status => Target確認新加入的Job有成功收集資料
-
 
 
 ## loki容器設定
