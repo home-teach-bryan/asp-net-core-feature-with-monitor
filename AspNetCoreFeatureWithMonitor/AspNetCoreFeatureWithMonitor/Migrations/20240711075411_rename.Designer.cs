@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AspNetCoreFeatureWithMonitor.Migrations
 {
-    [DbContext(typeof(EFcoreSampleContext))]
+    [DbContext(typeof(ProductContext))]
     [Migration("20240711075411_rename")]
     partial class rename
     {

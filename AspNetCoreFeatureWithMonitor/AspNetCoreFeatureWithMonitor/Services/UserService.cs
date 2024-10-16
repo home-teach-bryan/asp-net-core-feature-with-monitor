@@ -4,11 +4,13 @@ namespace AspNetCoreFeatureWithMonitor.Services;
 
 public class UserService : IUserService
 {
-    private EFcoreSampleContext _dbContext;
+    private ProductContext _dbContext;
+    private readonly TokenCounter _tokenCounter;
 
-    public UserService(EFcoreSampleContext dbContext)
+    public UserService(ProductContext dbContext, TokenCounter tokenCounter)
     {
         _dbContext = dbContext;
+        _tokenCounter = tokenCounter;
     }
 
     public (bool isValid, User user) IsValid(string name, string password)
@@ -22,7 +24,9 @@ public class UserService : IUserService
         if (!isVerify)
         {
             return (false, new User());
-        } 
+        }
+
+        _tokenCounter.Counter(user.Name);
         return (true, user);
     }
 

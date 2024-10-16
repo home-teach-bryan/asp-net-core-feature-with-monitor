@@ -7,9 +7,9 @@ namespace AspNetCoreFeatureWithMonitor.Services;
 
 public class ProductService : IProductService
 {
-    private readonly EFcoreSampleContext _dbContext;
+    private readonly ProductContext _dbContext;
 
-    public ProductService(EFcoreSampleContext dbContext)
+    public ProductService(ProductContext dbContext)
     {
         _dbContext = dbContext;
     }

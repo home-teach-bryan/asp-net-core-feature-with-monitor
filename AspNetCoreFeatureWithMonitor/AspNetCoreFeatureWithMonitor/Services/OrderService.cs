@@ -6,9 +6,9 @@ namespace AspNetCoreFeatureWithMonitor.Services;
 
 public class OrderService : IOrderService 
 {
-    private EFcoreSampleContext _dbContext;
+    private ProductContext _dbContext;
 
-    public OrderService(EFcoreSampleContext dbContext)
+    public OrderService(ProductContext dbContext)
     {
         _dbContext = dbContext;
     }

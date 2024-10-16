@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics.Metrics;
+using System.Security.Claims;
 using AspNetCoreFeatureWithMonitor.Jwt;
 using AspNetCoreFeatureWithMonitor.Models.Enum;
 using AspNetCoreFeatureWithMonitor.Models.Request;
@@ -18,11 +19,13 @@ public class TokenController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly JwtTokenGenerator _jwtTokenGenerator;
+    private readonly IMeterFactory _meterFactory;
 
-    public TokenController(IUserService userService, JwtTokenGenerator jwtTokenGenerator)
+    public TokenController(IUserService userService, JwtTokenGenerator jwtTokenGenerator, IMeterFactory meterFactory)
     {
         _userService = userService;
         _jwtTokenGenerator = jwtTokenGenerator;
+        _meterFactory = meterFactory;
     }
     
     /// <summary>
@@ -41,6 +44,9 @@ public class TokenController : ControllerBase
             return BadRequest(new ApiResponse<object>(ApiResponseStatus.UserNotFound));
         }
         var token = _jwtTokenGenerator.GenerateJwtToken(user.Id, user.Name, user.Roles);
+
+        
+        
         return Ok(new ApiResponse<object>(ApiResponseStatus.Success)
         {
             Data = token

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AspNetCoreFeatureWithMonitor.Migrations
 {
-    [DbContext(typeof(EFcoreSampleContext))]
-    partial class EFcoreSampleContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ProductContext))]
+    partial class ProductContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

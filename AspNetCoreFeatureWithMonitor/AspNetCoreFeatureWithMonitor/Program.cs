@@ -40,6 +40,7 @@ public class Program
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<JwtTokenGenerator>();
+            builder.Services.AddSingleton<TokenCounter>();
 
             // jwt authentication setting
             builder.Services.AddCustomJwtAuthentication(builder.Configuration);
@@ -56,11 +57,11 @@ public class Program
             builder.Services.AddSerilog();
 
             // Db Context
-            builder.Services.AddDbContext<EFcoreSampleContext>(options =>
+            builder.Services.AddDbContext<ProductContext>(options =>
             {
-                options.UseSqlServer(builder.Configuration.GetConnectionString("EFCoreSampleConnectionString"));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ProductConnectionString"));
             });
-            
+
             builder.Services.AddCustomOpenTelemetry();
 
             var app = builder.Build();
@@ -72,6 +73,7 @@ public class Program
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
             app.MapPrometheusScrapingEndpoint();
             app.UseSerilogRequestLogging();
             app.UseMiddleware<HttpLoggingMiddleware>();
@@ -79,7 +81,6 @@ public class Program
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseRateLimiter();
-
             app.MapControllers();
             app.Run();
         }

@@ -137,15 +137,16 @@ scrape_configs:
       - targets: ["host.docker.internal:5288"] #這邊Prometheus是在docker內，連到我本地的應用程式，所以使用host.docker.internal指向到本機
 ```
 
-- 加入設定後再重啟container 去Status => Target確認新加入的Job有成功收集資料
-
+- 加入設定後再重啟container
+- 連至localhost:9090
+- 在Status下的Target確認新加入的Job有成功收集資料
 
 ## loki容器設定
 
 1. 將專案內的loki-config.yml檔案放置docker volumn掛載出來的位置
-ex: {host}\docker-desktop-data\data\docker\volumes\grafana-stack_loki\_data)
-
+ex: {host}\docker-desktop-data\data\docker\volumes\grafana-stack_loki\_data
 2. 放置完後需要啟動loki container
+3. 連至 localhost:3100/ready與localhost:3100/metrics確認loki有啟動
 
 ## 專案中設定Log寫入至loki(使用Serilog)
 1. [安裝Serilog to loki](https://github.com/serilog-contrib/serilog-sinks-grafana-loki)

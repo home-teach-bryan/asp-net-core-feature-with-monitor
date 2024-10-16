@@ -42,18 +42,7 @@ services:
       - loki:/mnt/config
     command:
       - "-config.file=/mnt/config/loki-config.yaml"
-  promtail:
-    image: grafana/promtail:3.0.0
-    hostname: promtail
-    container_name: promtail
-    volumes:
-      - promtail:/mnt/config
-    command:
-      - "-config.file=/mnt/config/promtail-config.yaml"
-    depends_on:
-      - loki
 volumes:
   grafana:
   prometheus:
   loki:
-  promtail:
